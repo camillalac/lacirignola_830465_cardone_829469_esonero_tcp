@@ -22,7 +22,6 @@
 
 #include "protocol.h"
 
-#define NO_ERROR 0
 
 void clearwinsock() {
 #if defined WIN32
@@ -47,7 +46,7 @@ int is_valid_city(const char* c) {
     // Lista delle 10 città italiane supportate (tutte minuscole)
     const char* list[] = {
         "bari","roma","milano","napoli","torino",
-        "palermo","genova","bologna","firenze","venezia"
+        "palermo","genova","bologna","firenze","venezia", "new york"
     };
 
     // Buffer per contenere la versione della città tutta minuscola
@@ -66,7 +65,7 @@ int is_valid_city(const char* c) {
         *p = tolower(*p);
 
     // Confrontiamo la stringa (ora minuscola) con ognuna delle città supportate
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 11; i++) {
         if (strcmp(lower, list[i]) == 0)
             return 1;   // città trovata → valida
     }
