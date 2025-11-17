@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include "protocol.h"
 
-#define NO_ERROR 0
 
 void clearwinsock() {
 #if defined WIN32
@@ -135,14 +134,21 @@ int main(int argc, char *argv[]) {
 	        tmp[sizeof(tmp)-1] = '\0';
 
 	        // parse "<type> <city>"
-	        if (sscanf(tmp, " %c %63s", &type, city) != 2) {
+	        // parse "<type> <city>"
+	        type = tmp[0];
+
+	        if (tmp[1] != ' ') {
 	            printf("Errore: formato non valido. Usa: -r \"t bari\"\n");
-	            arguments_error(argv[0]);
 	            return 0;
 	        }
 
+	        // Copia città con spazi
+	        strncpy(city, tmp + 2, CITY_MAX - 1);
+	        city[CITY_MAX - 1] = '\0';
+
 	        request_found = 1;
 	        continue;
+
 	    }
 
 	    // argomento sconosciuto
