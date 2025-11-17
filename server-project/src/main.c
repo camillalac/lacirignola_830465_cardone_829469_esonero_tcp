@@ -88,6 +88,20 @@ int main(int argc, char *argv[]) {
 
 	srand((unsigned)time(NULL));
 
+	  int port = SERVER_PORT;
+
+	// Parsing degli argomenti (-p)
+	    for (int i = 1; i < argc; i++) {
+	        if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
+	            port = atoi(argv[++i]);
+	            if (port <= 0 || port > 65535) {
+	                printf("Porta non valida.\n");
+	                return 0;
+	            }
+	        }
+	    }
+
+
 	// 1) CREATE SOCKET
 	int my_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (my_socket < 0) {
@@ -100,7 +114,7 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family      = AF_INET;
-	server_addr.sin_port        = htons(SERVER_PORT);
+	server_addr.sin_port        = htons(port);
 	server_addr.sin_addr.s_addr = INADDR_ANY;
 
 	// 3) BIND
@@ -119,7 +133,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	printf("Server meteo in ascolto sulla porta %d...\n", SERVER_PORT);
+	printf("Server meteo in ascolto sulla porta %d...\n", port);
 
 	// 5) LOOP DI ACCETTAZIONE
 	while (1) {
