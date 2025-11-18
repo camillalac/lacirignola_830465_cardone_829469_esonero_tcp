@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-//
-// ---------------- COSTANTI DEL PROTOCOLLO ----------------
-//
 
 // Porta di default
 #define SERVER_PORT 56700
@@ -24,19 +21,17 @@
 #define TYPE_PRESS 'p'
 
 // Codici di stato
-#define STATUS_OK            0u
-#define STATUS_CITY_UNKNOWN  1u
-#define STATUS_BAD_REQUEST   2u
+#define STATUS_OK            0
+#define STATUS_CITY_UNKNOWN  1
+#define STATUS_BAD_REQUEST   2
 
-//
-// ---------------- STRUTTURE DEL PROTOCOLLO ----------------
-//
-
+//Richiesta client -> server
 typedef struct {
     char type;                   // 't','h','w','p'
     char city[CITY_MAX];         // stringa città null-terminated
 } weather_request_t;
 
+//Risposta server -> client
 typedef struct {
     unsigned int status;         // 0,1,2
     char type;                   // eco del tipo richiesto
@@ -54,8 +49,10 @@ float get_humidity(void);
 float get_wind(void);
 float get_pressure(void);
 
-// Verifica città supportata (case-insensitive)
-int is_valid_city(const char* c);
+//
+// ---------------- FUNZIONI server e client  ----------------
+//
+int valid_type(char t);
 
 #endif /* PROTOCOL_H_ */
 

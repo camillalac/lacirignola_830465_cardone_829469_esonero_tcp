@@ -34,37 +34,35 @@ static float frand(float a, float b) {
     return a + ((float) rand() / RAND_MAX) * (b - a);
 }
 
-float get_temperature() { return frand(-10.0f, 40.0f); }
-float get_humidity()    { return frand( 20.0f,100.0f); }
-float get_wind()        { return frand(  0.0f,100.0f); }
-float get_pressure()    { return frand(950.0f,1050.0f); }
+float get_temperature()
+{ return frand(-10.0f, 40.0f); }
+float get_humidity()
+{ return frand( 20.0f,100.0f); }
+float get_wind()
+{ return frand(  0.0f,100.0f); }
+float get_pressure()
+{ return frand(950.0f,1050.0f); }
 
-// Funzione che controlla se una città è supportata dal server.
-// Restituisce 1 se la città esiste nella lista, altrimenti 0.
+
 int is_valid_city(const char* c) {
 
-    // Lista delle 10 città italiane supportate (tutte minuscole)
     const char* list[] = {
         "bari","roma","milano","napoli","torino",
         "palermo","genova","bologna","firenze","venezia", "new york"
     };
 
-    // Buffer per contenere la versione della città tutta minuscola
     char lower[CITY_MAX];
 
-    // Copia sicura della stringa in input dentro il buffer "lower"
-    // Limitiamo a CITY_MAX caratteri per evitare overflow
+
     strncpy(lower, c, CITY_MAX);
 
-    // Garantiamo la terminazione del buffer con '\0'
     lower[CITY_MAX - 1] = '\0';
 
-    // Convertiamo tutta la stringa in minuscolo
-    // (il server deve essere case-insensitive)
+
     for (char* p = lower; *p; p++)
         *p = tolower(*p);
 
-    // Confrontiamo la stringa (ora minuscola) con ognuna delle città supportate
+
     for (int i = 0; i < 11; i++) {
         if (strcmp(lower, list[i]) == 0)
             return 1;   // città trovata → valida
@@ -72,6 +70,51 @@ int is_valid_city(const char* c) {
 
     // Nessuna corrispondenza trovata → città non supportata
     return 0;
+}
+
+
+int valid_type(char t) {
+    return (t == 't' || t == 'h' || t == 'w' || t == 'p');
+}
+
+
+int parse_port_argument(int argc, char *argv[], int *port) {
+
+    for (int i = 1; i < argc; i++) {
+
+        if (strcmp(argv[i], "-p") == 0) {
+
+            // Controlla che ci sia un valore dopo -p
+            if (i + 1 >= argc) {
+                printf("Errore: manca la porta dopo -p\n");
+                return 0;
+            }
+
+            // Controlla che non sia un altro flag
+            if (argv[i+1][0] == '-') {
+                printf("Errore: dopo -p devi inserire una porta, non un flag\n");
+                return 0;
+            }
+
+            // Conversione e validazione
+            int given_port = atoi(argv[i+1]);
+            if (given_port <= 0 || given_port > 65535) {
+                printf("Porta non valida. Valori ammessi: 1–65535\n");
+                return 0;
+            }
+
+            *port = given_port;
+            i++; // Salta la porta
+        }
+
+        // Argomento sconosciuto
+        else {
+            printf("Argomento sconosciuto: %s\n", argv[i]);
+            return 0;
+        }
+    }
+
+    return 1; // Parsing ok
 }
 
 
@@ -88,18 +131,12 @@ int main(int argc, char *argv[]) {
 
 	srand((unsigned)time(NULL));
 
-	  int port = SERVER_PORT;
+	int port = SERVER_PORT;
 
-	// Parsing degli argomenti (-p)
-	    for (int i = 1; i < argc; i++) {
-	        if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
-	            port = atoi(argv[++i]);
-	            if (port <= 0 || port > 65535) {
-	                printf("Porta non valida.\n");
-	                return 0;
-	            }
-	        }
-	    }
+	if (!parse_port_argument(argc, argv, &port)) {
+	    printf("Uso corretto: %s [-p porta]\n", argv[0]);
+	    return 0;
+	}
 
 
 	// 1) CREATE SOCKET
@@ -116,6 +153,7 @@ int main(int argc, char *argv[]) {
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = htons(port);
 	server_addr.sin_addr.s_addr = INADDR_ANY;
+	//accetta connessione da qualunque client
 
 	// 3) BIND
 	if (bind(my_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
@@ -163,22 +201,34 @@ int main(int argc, char *argv[]) {
 		resp.value  = 0.0f;
 
 		// VALIDAZIONE TIPO
-		if (req.type!='t' && req.type!='h' && req.type!='w' && req.type!='p') {
-			resp.status = STATUS_BAD_REQUEST;
-			resp.type = '\0';
-			resp.value = 0.0f;
+		if (!valid_type(req.type)) {
+		    resp.status = STATUS_BAD_REQUEST;
+		    resp.type = '\0';
+		    resp.value = 0.0f;
 		}
+
 		else if (!is_valid_city(req.city)) {
 			resp.status = STATUS_CITY_UNKNOWN;
 			resp.type = '\0';
 			resp.value = 0.0f;
 		}
 		else {
-			if (req.type=='t') resp.value = get_temperature();
-			if (req.type=='h') resp.value = get_humidity();
-			if (req.type=='w') resp.value = get_wind();
-			if (req.type=='p') resp.value = get_pressure();
+		    switch (req.type) {
+		        case TYPE_TEMP:
+		            resp.value = get_temperature();
+		            break;
+		        case TYPE_HUM:
+		            resp.value = get_humidity();
+		            break;
+		        case TYPE_WIND:
+		            resp.value = get_wind();
+		            break;
+		        case TYPE_PRESS:
+		            resp.value = get_pressure();
+		            break;
+		    }
 		}
+
 
 		send(client_socket, (char *)&resp, sizeof(resp), 0);
 
