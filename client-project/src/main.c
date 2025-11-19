@@ -38,8 +38,30 @@ void arguments_error(const char* progname) {
 }
 
 int valid_type(char t) {
-    return (t == 't' || t == 'h' || t == 'w' || t == 'p');
-}ma
+    return (t == TYPE_TEMP || t == TYPE_HUM ||
+            t == TYPE_WIND || t == TYPE_PRESS);
+}
+
+#include <ctype.h>
+
+void maiuscola(char *s) {
+    int new_word = 1;
+
+    for (int i = 0; s[i] != '\0'; i++) {
+
+        if (isspace(s[i])) {
+            new_word = 1;  // prossimo carattere sarà l'inizio di una parola
+        }
+        else if (new_word) {
+            s[i] = toupper(s[i]);  // maiuscola
+            new_word = 0;
+        }
+        else {
+            s[i] = tolower(s[i]);  // minuscola per evitare "MILANO"
+        }
+    }
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -158,7 +180,7 @@ int main(int argc, char *argv[]) {
     // 1) CREATE SOCKET
     int my_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (my_socket < 0) {
-        printf("socket() failed\n");
+    	printf("Creazione della socket fallita\n");
         clearwinsock();
         return 0;
     }
@@ -176,7 +198,7 @@ int main(int argc, char *argv[]) {
         printf("Connessione al server fallita.\n");
         closesocket(my_socket);
         clearwinsock();
-        return 0;
+        return -1;
     }
 
     // INVIO RICHIESTA
@@ -188,7 +210,7 @@ int main(int argc, char *argv[]) {
         printf("Errore durante l'invio.\n");
         closesocket(my_socket);
         clearwinsock();
-        return 0;
+        return -1;
     }
 
     // RICEZIONE RISPOSTA
@@ -198,34 +220,38 @@ int main(int argc, char *argv[]) {
         printf("Errore durante la ricezione\n");
         closesocket(my_socket);
         clearwinsock();
-        return 0;
+        return -1;
     }
+
+    maiuscola(city);
 
     printf("Ricevuto risultato dal server ip %s. ", server_ip);
 
     if (resp.status == STATUS_OK) {
         switch (resp.type) {
             case TYPE_TEMP:
-            	printf("%s: Temperatura = %.1f°C\n", city, resp.value);
-            	break;
+                printf("%s: Temperatura = %.1f°C\n", city, resp.value);
+                break;
             case TYPE_HUM:
-            	printf("%s: Umidità = %.1f%%\n", city, resp.value);
-            	break;
+                printf("%s: Umidità = %.1f%%\n", city, resp.value);
+                break;
             case TYPE_WIND:
-            	printf("%s: Vento = %.1f km/h\n", city, resp.value);
-            	break;
+                printf("%s: Vento = %.1f km/h\n", city, resp.value);
+                break;
             case TYPE_PRESS:
-            	printf("%s: Pressione = %.1f hPa\n", city, resp.value);
-            	break;
+                printf("%s: Pressione = %.1f hPa\n", city, resp.value);
+                break;
         }
     }
     else if (resp.status == STATUS_CITY_UNKNOWN) {
-        printf("Citta' non disponibile\n");
+        printf("Città non disponibile\n");
     }
-    else {
+    else if (resp.status == STATUS_BAD_REQUEST) {
         printf("Richiesta non valida\n");
     }
-    printf("Client terminated.\n");
+    else {
+        printf("Errore sconosciuto\n");
+    }
 
     closesocket(my_socket);
     clearwinsock();

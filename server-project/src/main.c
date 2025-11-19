@@ -74,7 +74,8 @@ int is_valid_city(const char* c) {
 
 
 int valid_type(char t) {
-    return (t == 't' || t == 'h' || t == 'w' || t == 'p');
+    return (t == TYPE_TEMP || t == TYPE_HUM ||
+            t == TYPE_WIND || t == TYPE_PRESS);
 }
 
 
@@ -105,6 +106,7 @@ int parse_port_argument(int argc, char *argv[], int *port) {
 
             *port = given_port;
             i++; // Salta la porta
+            continue;
         }
 
         // Argomento sconosciuto
@@ -148,29 +150,28 @@ int main(int argc, char *argv[]) {
 	}
 
 	// 2) SERVER ADDRESS
-	struct sockaddr_in server_addr;
-	memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family      = AF_INET;
-	server_addr.sin_port        = htons(port);
-	server_addr.sin_addr.s_addr = INADDR_ANY;
+	struct sockaddr_in sad;
+	memset(&sad, 0, sizeof(sad));
+	sad.sin_family      = AF_INET;
+	sad.sin_port        = htons(port);
+	sad.sin_addr.s_addr = INADDR_ANY;
 	//accetta connessione da qualunque client
 
-	// 3) BIND
-	if (bind(my_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-		printf("bind() failed\n");
-		closesocket(my_socket);
-		clearwinsock();
-		return 0;
-	}
+    // 3) BIND
+    if (bind(my_socket, (struct sockaddr*)&sad, sizeof(sad)) < 0) {
+        printf("bind() failed\n");
+        closesocket(my_socket);
+        clearwinsock();
+        return 0;
+    }
 
-	// 4) LISTEN
-	if (listen(my_socket, QUEUE_SIZE) < 0) {
-		printf("listen() failed\n");
-		closesocket(my_socket);
-		clearwinsock();
-		return 0;
-	}
-
+    // 4) LISTEN
+    if (listen(my_socket, QUEUE_SIZE) < 0) {
+        printf("listen() failed\n");
+        closesocket(my_socket);
+        clearwinsock();
+        return 0;
+    }
 	printf("Server meteo in ascolto sulla porta %d...\n", port);
 
 	// 5) LOOP DI ACCETTAZIONE
@@ -182,14 +183,17 @@ int main(int argc, char *argv[]) {
 
 		if (client_socket < 0) {
 			printf("accept() failed\n");
-			continue;
+			closesocket(client_socket);
+			clearwinsock();
+			return 0;
 		}
 
 		weather_request_t req;
 		if (recv(client_socket,(char *) &req, sizeof(req), 0) <= 0) {
 			printf("recv() fallita\n");
 			closesocket(client_socket);
-			continue;
+			clearwinsock();
+			return -1;
 		}
 
 		printf("Richiesta '%c %s' dal client %s\n",
