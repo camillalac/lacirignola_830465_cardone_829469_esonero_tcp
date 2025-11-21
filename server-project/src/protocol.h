@@ -3,12 +3,8 @@
 
 #include <stdint.h>
 
-
-// Porta di default
 #define SERVER_PORT 56700
 #define NO_ERROR 0
-
-// Lunghezza massima nome città
 #define CITY_MAX 64
 
 // Size della listen queue

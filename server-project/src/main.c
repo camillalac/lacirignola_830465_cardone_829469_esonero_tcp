@@ -1,6 +1,3 @@
-/*
- * TCP Server - Weather Service
- */
 
 #if defined WIN32
 #include <winsock.h>
@@ -48,14 +45,11 @@ int is_valid_city(const char* c) {
 
     const char* list[] = {
         "bari","roma","milano","napoli","torino",
-        "palermo","genova","bologna","firenze","venezia", "new york"
+        "palermo","genova","bologna","firenze","venezia", "reggio calabria"
     };
 
     char lower[CITY_MAX];
-
-
     strncpy(lower, c, CITY_MAX);
-
     lower[CITY_MAX - 1] = '\0';
 
 
@@ -65,10 +59,10 @@ int is_valid_city(const char* c) {
 
     for (int i = 0; i < 11; i++) {
         if (strcmp(lower, list[i]) == 0)
-            return 1;   // città trovata → valida
+            return 1;   // città trovata valida
     }
 
-    // Nessuna corrispondenza trovata → città non supportata
+    // città non trovata
     return 0;
 }
 
@@ -82,46 +76,22 @@ void errorhandler(char *errorMessage) {
 printf ("%s", errorMessage);
 }
 
-int parse_port_argument(int argc, char *argv[], int *port) {
-
+int parse_port(int argc, char *argv[], int *port) {
     for (int i = 1; i < argc; i++) {
-
         if (strcmp(argv[i], "-p") == 0) {
 
-            // Controlla che ci sia un valore dopo -p
-            if (i + 1 >= argc) {
-                printf("Errore: manca la porta dopo -p\n");
-                return 0;
-            }
+            if (i + 1 >= argc) return 0;
+            if (argv[i+1][0] == '-') return 0;
 
-            // Controlla che non sia un altro flag
-            if (argv[i+1][0] == '-') {
-                printf("Errore: dopo -p devi inserire una porta, non un flag\n");
-                return 0;
-            }
+            int p = atoi(argv[i+1]);
+            if (p <= 0 || p > 65535) return 0;
 
-            // Conversione e validazione
-            int given_port = atoi(argv[i+1]);
-            if (given_port <= 0 || given_port > 65535) {
-                printf("Porta non valida. Valori ammessi: 1–65535\n");
-                return 0;
-            }
-
-            *port = given_port;
-            i++; // Salta la porta
-            continue;
-        }
-
-        // Argomento sconosciuto
-        else {
-            printf("Argomento sconosciuto: %s\n", argv[i]);
-            return 0;
+            *port = p;
+            return 1;
         }
     }
-
-    return 1; // Parsing ok
+    return 1;
 }
-
 
 int main(int argc, char *argv[]) {
 
@@ -143,7 +113,7 @@ int main(int argc, char *argv[]) {
 
 	int port = SERVER_PORT;
 
-	if (!parse_port_argument(argc, argv, &port)) {
+	if (!parse_port(argc, argv, &port)) {
 	    printf("Uso corretto: %s [-p porta]\n", argv[0]);
 	    return 0;
 	}
@@ -163,7 +133,6 @@ int main(int argc, char *argv[]) {
 	sad.sin_family      = AF_INET;
 	sad.sin_port        = htons(port);
 	sad.sin_addr.s_addr = INADDR_ANY;
-	//accetta connessione da qualunque client
 
     // 3) BIND
     if (bind(my_socket, (struct sockaddr*)&sad, sizeof(sad)) < 0) {
