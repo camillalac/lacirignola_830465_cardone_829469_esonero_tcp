@@ -78,6 +78,9 @@ int valid_type(char t) {
             t == TYPE_WIND || t == TYPE_PRESS);
 }
 
+void errorhandler(char *errorMessage) {
+printf ("%s", errorMessage);
+}
 
 int parse_port_argument(int argc, char *argv[], int *port) {
 
@@ -129,6 +132,11 @@ int main(int argc, char *argv[]) {
 		printf("Error at WSAStartup()\n");
 		return 0;
 	}
+
+	if (result != 0) {
+	 printf ("error at WSASturtup\n");
+	 return-1;
+	 }
 #endif
 
 	srand((unsigned)time(NULL));
@@ -232,7 +240,6 @@ int main(int argc, char *argv[]) {
 		            break;
 		    }
 		}
-
 
 		send(client_socket, (char *)&resp, sizeof(resp), 0);
 

@@ -39,9 +39,6 @@ typedef struct {
 } weather_response_t;
 
 
-//
-// ---------------- FUNZIONI (solo server) ----------------
-//
 
 // Generatori valori meteo
 float get_temperature(void);
@@ -49,10 +46,6 @@ float get_humidity(void);
 float get_wind(void);
 float get_pressure(void);
 
-//
-// ---------------- FUNZIONI server e client  ----------------
-//
-int valid_type(char t);
 
 #endif /* PROTOCOL_H_ */
 

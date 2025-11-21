@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "protocol.h"
 
 
@@ -42,7 +43,6 @@ int valid_type(char t) {
             t == TYPE_WIND || t == TYPE_PRESS);
 }
 
-#include <ctype.h>
 
 void maiuscola(char *s) {
     int new_word = 1;
@@ -62,6 +62,9 @@ void maiuscola(char *s) {
     }
 }
 
+void errorhandler(char *error_message) {
+printf("%s",error_message);
+}
 
 int main(int argc, char *argv[]) {
 
@@ -72,6 +75,11 @@ int main(int argc, char *argv[]) {
         printf("Error at WSAStartup()\n");
         return 0;
     }
+
+    if (result != 0) {
+     printf ("error at WSASturtup\n");
+     return-1;
+     }
 #endif
 
     char server_ip[64] = "127.0.0.1";
@@ -252,6 +260,8 @@ int main(int argc, char *argv[]) {
     else {
         printf("Errore sconosciuto\n");
     }
+
+    printf("Client terminated.\n");
 
     closesocket(my_socket);
     clearwinsock();
