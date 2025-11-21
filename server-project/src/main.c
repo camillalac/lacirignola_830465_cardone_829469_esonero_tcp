@@ -12,6 +12,11 @@
 #define closesocket close
 #endif
 
+#ifndef socklen_t
+typedef int socklen_t;
+#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -155,8 +160,12 @@ int main(int argc, char *argv[]) {
 	while (1) {
 
 		struct sockaddr_in client_addr;
-		int client_len = sizeof(client_addr);
-		int client_socket = accept(my_socket, (struct sockaddr*)&client_addr, &client_len);
+		socklen_t client_len = sizeof(client_addr);
+
+		int client_socket = accept(my_socket,
+		                           (struct sockaddr*)&client_addr,
+		                           &client_len);
+
 
 		if (client_socket < 0) {
 			printf("accept() failed\n");
