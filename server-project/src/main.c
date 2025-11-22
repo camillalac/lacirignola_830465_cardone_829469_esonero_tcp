@@ -2,7 +2,6 @@
 /*SERVER*/
 #if defined WIN32
 #include <winsock.h>
-typedef int socklen_t;
 #else
 #include <string.h>
 #include <unistd.h>
@@ -158,11 +157,14 @@ if (result != NO_ERROR) {
 	// 5) LOOP DI ACCETTAZIONE
 	while (1) {
 	    struct sockaddr_in client_addr;
-	    socklen_t client_len = sizeof(client_addr);
 
-	    int client_socket = accept(my_socket,
-	                               (struct sockaddr*)&client_addr,
-	                               &client_len);
+	    #if defined WIN32
+	    	int client_len = sizeof(client_addr);
+		#else
+	    	socklen_t client_len = sizeof(client_addr);
+		#endif
+
+	    int client_socket = accept(my_socket, (struct sockaddr*)&client_addr, &client_len);
 
 
 		if (client_socket < 0) {
