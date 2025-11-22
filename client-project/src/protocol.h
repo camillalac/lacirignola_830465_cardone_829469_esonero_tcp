@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define SERVER_PORT 56700
-#define NO_ERROR 0
+
 #define CITY_MAX 64
 
 // Size della listen queue

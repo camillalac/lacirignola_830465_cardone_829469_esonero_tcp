@@ -1,6 +1,8 @@
 
+/*SERVER*/
 #if defined WIN32
 #include <winsock.h>
+typedef int socklen_t;
 #else
 #include <string.h>
 #include <unistd.h>
@@ -12,11 +14,6 @@
 #define closesocket close
 #endif
 
-#ifndef socklen_t
-typedef int socklen_t;
-#endif
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -24,6 +21,7 @@ typedef int socklen_t;
 
 #include "protocol.h"
 
+#define NO_ERROR 0
 
 void clearwinsock() {
 #if defined WIN32
@@ -82,37 +80,38 @@ printf ("%s", errorMessage);
 }
 
 int parse_port(int argc, char *argv[], int *port) {
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-p") == 0) {
 
-            if (i + 1 >= argc) return 0;
-            if (argv[i+1][0] == '-') return 0;
+    if (argc == 1) return 1;
 
-            int p = atoi(argv[i+1]);
-            if (p <= 0 || p > 65535) return 0;
+    if (argc != 3) return 0;
 
-            *port = p;
-            return 1;
-        }
-    }
+    if (strcmp(argv[1], "-p") != 0)
+        return 0;
+
+    if (argv[2][0] == '-')
+        return 0;
+
+    int p = atoi(argv[2]);
+
+    if (p <= 0 || p > 65535)
+        return 0;
+
+    *port = p;
     return 1;
 }
+
 
 int main(int argc, char *argv[]) {
 
 #if defined WIN32
-	WSADATA wsa_data;
-	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
-	if (result != NO_ERROR) {
-		printf("Error at WSAStartup()\n");
-		return 0;
-	}
-
-	if (result != 0) {
-	 printf ("error at WSASturtup\n");
-	 return-1;
-	 }
+WSADATA wsa_data;
+int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
+if (result != NO_ERROR) {
+    printf("Error at WSAStartup()\n");
+    return 1;
+}
 #endif
+
 
 	srand((unsigned)time(NULL));
 
@@ -158,13 +157,12 @@ int main(int argc, char *argv[]) {
 
 	// 5) LOOP DI ACCETTAZIONE
 	while (1) {
+	    struct sockaddr_in client_addr;
+	    socklen_t client_len = sizeof(client_addr);
 
-		struct sockaddr_in client_addr;
-		socklen_t client_len = sizeof(client_addr);
-
-		int client_socket = accept(my_socket,
-		                           (struct sockaddr*)&client_addr,
-		                           &client_len);
+	    int client_socket = accept(my_socket,
+	                               (struct sockaddr*)&client_addr,
+	                               &client_len);
 
 
 		if (client_socket < 0) {
