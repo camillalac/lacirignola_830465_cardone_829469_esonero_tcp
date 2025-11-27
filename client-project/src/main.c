@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     sad.sin_addr.s_addr = inet_addr(server_ip);
 
     if (connect(my_socket, (struct sockaddr*)&sad, sizeof(sad)) < 0) {
-        printf("Connessione al server fallita.\n");
+    	errorhandler("Connessione al server fallita.\n");
         closesocket(my_socket);
         clearwinsock();
         return -1;
@@ -141,6 +141,7 @@ int main(int argc, char *argv[]) {
     strncpy(req.city, city, CITY_MAX);
 
     if (send(my_socket, (char*)&req, sizeof(req), 0) != sizeof(req)) {
+    	errorhandler("send() fallita");
         closesocket(my_socket);
         clearwinsock();
         return -1;
@@ -148,6 +149,7 @@ int main(int argc, char *argv[]) {
 
     weather_response_t resp;
     if (recv(my_socket, (char*)&resp, sizeof(resp), 0) <= 0) {
+    	errorhandler("recv() fallita");
         closesocket(my_socket);
         clearwinsock();
         return -1;

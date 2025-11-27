@@ -117,7 +117,7 @@ if (result != NO_ERROR) {
 	int port = SERVER_PORT;
 
 	if (!parse_port(argc, argv, &port)) {
-	    printf("Uso corretto: %s [-p porta]\n", argv[0]);
+	    errorhandler("Uso corretto: %s [-p porta]\n", argv[0]);
 	    return 0;
 	}
 
@@ -125,7 +125,7 @@ if (result != NO_ERROR) {
 	// 1) CREATE SOCKET
 	int my_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (my_socket < 0) {
-		printf("socket() failed\n");
+		errorhandler("socket() failed\n");
 		clearwinsock();
 		return 0;
 	}
@@ -139,7 +139,7 @@ if (result != NO_ERROR) {
 
     // 3) BIND
     if (bind(my_socket, (struct sockaddr*)&sad, sizeof(sad)) < 0) {
-        printf("bind() failed\n");
+        errorhandler("bind() failed\n");
         closesocket(my_socket);
         clearwinsock();
         return 0;
@@ -147,7 +147,7 @@ if (result != NO_ERROR) {
 
     // 4) LISTEN
     if (listen(my_socket, QUEUE_SIZE) < 0) {
-        printf("listen() failed\n");
+        errorhandler("listen() failed\n");
         closesocket(my_socket);
         clearwinsock();
         return 0;
@@ -168,7 +168,7 @@ if (result != NO_ERROR) {
 
 
 		if (client_socket < 0) {
-			printf("accept() failed\n");
+			errorhandler("accept() failed\n");
 			closesocket(client_socket);
 			clearwinsock();
 			return 0;
@@ -176,7 +176,7 @@ if (result != NO_ERROR) {
 
 		weather_request_t req;
 		if (recv(client_socket,(char *) &req, sizeof(req), 0) <= 0) {
-			printf("recv() fallita\n");
+			errorhandler("recv() fallita\n");
 			closesocket(client_socket);
 			clearwinsock();
 			return -1;
