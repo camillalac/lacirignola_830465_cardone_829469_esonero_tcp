@@ -117,7 +117,7 @@ if (result != NO_ERROR) {
 	int port = SERVER_PORT;
 
 	if (!parse_port(argc, argv, &port)) {
-	    errorhandler("Uso corretto: %s [-p porta]\n", argv[0]);
+	    printf("Uso corretto: %s [-p porta]\n", argv[0]);
 	    return 0;
 	}
 
